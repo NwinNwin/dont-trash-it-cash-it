@@ -1,7 +1,10 @@
 import { HStack, Button, Flex } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
   return (
     <Flex
       as="nav"
@@ -17,7 +20,7 @@ const Navbar = () => {
       h={16}
     >
       <Flex>Logo</Flex>
-      <Button>List Item</Button>
+      <Button onClick={() => navigate("/list")}>List Item</Button>
       <Button>Sign In</Button>
       <ColorModeButton />
     </Flex>

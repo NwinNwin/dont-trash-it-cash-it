@@ -1,8 +1,9 @@
 import { Button, Flex } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Footer = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <Flex
@@ -18,10 +19,24 @@ const Footer = () => {
       boxShadow="md"
       h={16}
     >
-      <Button onClick={() => navigate("/")}>Home</Button>
-      <Button>Ledger</Button>
-      <Button>Renting</Button>
-      <Button>Help</Button>
+      <Button
+        onClick={() => navigate("/")}
+        colorScheme={location.pathname === "/" ? "blue" : "gray"}
+      >
+        Home
+      </Button>
+      <Button
+        onClick={() => navigate("/rent")}
+        colorScheme={location.pathname === "/rent" ? "blue" : "gray"}
+      >
+        Rent
+      </Button>
+      <Button
+        onClick={() => navigate("/lend")}
+        colorScheme={location.pathname === "/lend" ? "blue" : "gray"}
+      >
+        Lend
+      </Button>
     </Flex>
   );
 };

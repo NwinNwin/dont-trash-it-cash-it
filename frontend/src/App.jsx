@@ -5,6 +5,9 @@ import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import ListItemPage from "./pages/ListItemPage";
+import RentPage from "./pages/RentPage";
+import LendPage from "./pages/LendPage";
 
 const App = () => {
   return (
@@ -22,6 +25,15 @@ const App = () => {
 
           {/* Route for the checkout page */}
           <Route path="/checkout/:id" element={<CheckoutPage />} />
+
+          {/* Route for the list item page */}
+          <Route path="/list" element={<ListItemPage />} />
+
+          {/* Route for the rent page */}
+          <Route path="/rent" element={<RentPage />} />
+
+          {/* Route for the lend page */}
+          <Route path="/lend" element={<LendPage />} />
         </Routes>
 
         {/* Footer remains persistent across all routes */}
