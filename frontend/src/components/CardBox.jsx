@@ -1,11 +1,11 @@
 import { Button, Flex } from "@chakra-ui/react";
-import ItemCard from "../ItemCard/ItemCard";
-import fakeData from "../../utils/fakeData";
+import ItemCard from "./ItemCard";
+import fakeData from "../utils/fakeData";
 
 const CardBox = () => {
   const itemsMap = fakeData.map((item) => (
     <ItemCard
-      key={item.id}
+      id={item.id}
       images={item.images}
       rental_fee={item.rental_fee}
       name={item.name}

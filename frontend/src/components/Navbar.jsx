@@ -1,5 +1,5 @@
 import { HStack, Button, Flex } from "@chakra-ui/react";
-import { ColorModeButton } from "../ui/color-mode";
+import { ColorModeButton } from "./ui/color-mode";
 
 const Navbar = () => {
   return (

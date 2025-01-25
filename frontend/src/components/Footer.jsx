@@ -1,7 +1,9 @@
 import { Button, Flex } from "@chakra-ui/react";
-import { ColorModeButton } from "../ui/color-mode";
+import { useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Footer = () => {
+  const navigate = useNavigate();
+
   return (
     <Flex
       as="footer"
@@ -16,7 +18,7 @@ const Navbar = () => {
       boxShadow="md"
       h={16}
     >
-      <Button>Home</Button>
+      <Button onClick={() => navigate("/")}>Home</Button>
       <Button>Ledger</Button>
       <Button>Renting</Button>
       <Button>Help</Button>
@@ -24,4 +26,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Footer;
