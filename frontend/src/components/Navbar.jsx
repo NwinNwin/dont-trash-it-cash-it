@@ -1,4 +1,4 @@
-import { HStack, Button, Flex, Icon, Text, Image } from "@chakra-ui/react";
+import { HStack, Button, Flex, Icon, Text, Image, Box } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -27,15 +27,23 @@ const Navbar = () => {
     }
   };
 
-  const NavButton = ({ icon, label, onClick, colorScheme = "gray" }) => (
+  const NavButton = ({
+    icon,
+    label,
+    onClick,
+    colorScheme = "white",
+    color = "black",
+  }) => (
     <Button
-      leftIcon={<Icon as={icon} boxSize={5} />}
       onClick={onClick}
-      colorScheme={colorScheme}
-      variant="ghost"
+      bg={colorScheme}
+      variant="outline"
+      borderRadius="xl"
       size="md"
+      color={color}
       _hover={{ bg: `${colorScheme}.50` }}
     >
+      <Box as={icon} boxSize={5} />
       {label}
     </Button>
   );
@@ -50,35 +58,34 @@ const Navbar = () => {
       top={0}
       zIndex={1}
       bg="white"
-      boxShadow="0 2px 10px rgba(0,0,0,0.05)"
+      boxShadow="md"
       h={16}
-      px={1}
+      px={4}
     >
-      <Image
-        src="/ih_logo.png"
-        alt="Logo"
-        h="80px"
-        cursor="pointer"
-        onClick={() => navigate("/")}
-      />
-
-      <HStack spacing={2}>
+      {/* Left Side */}
+      <Box>
         <NavButton
           icon={MdAdd}
           label="List Item"
           onClick={() => navigate("/list")}
-          colorScheme="blue"
+          colorScheme="blue.600"
+          color="white"
         />
+      </Box>
 
+      {/* Center */}
+      <Image
+        src="/ih_logo.png"
+        alt="Logo"
+        h="70px"
+        cursor="pointer"
+        onClick={() => navigate("/")}
+      />
+
+      {/* Right Side */}
+      <Box>
         {user ? (
-          <>
-            <NavButton
-              icon={MdLogout}
-              label="Sign Out"
-              onClick={handleSignOut}
-              colorScheme="red"
-            />
-          </>
+          <NavButton icon={MdLogout} label="Sign Out" onClick={handleSignOut} />
         ) : (
           <NavButton
             icon={MdLogin}
@@ -87,7 +94,7 @@ const Navbar = () => {
             colorScheme="green"
           />
         )}
-      </HStack>
+      </Box>
     </Flex>
   );
 };
