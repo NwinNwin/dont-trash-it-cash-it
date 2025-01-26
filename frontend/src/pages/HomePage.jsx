@@ -5,7 +5,6 @@ import CardBox from "../components/CardBox";
 const HomePage = () => {
   return (
     <Flex direction="column" align="center" py={16} mb={16}>
-      <SearchBar />
       <CardBox />
     </Flex>
   );

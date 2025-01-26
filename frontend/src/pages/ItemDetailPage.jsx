@@ -9,6 +9,7 @@ import {
   VStack,
   HStack,
   Badge,
+  Progress,
 } from "@chakra-ui/react";
 import ImageCarousel from "../components/ImageCarousel";
 import { useParams, useNavigate } from "react-router-dom";
@@ -21,25 +22,28 @@ import {
   MdLocalShipping,
   MdBolt,
   MdTimer,
-  MdScale,
   MdInventory,
 } from "react-icons/md";
 import { GiWeight } from "react-icons/gi";
+import { FaLeaf } from "react-icons/fa";
 
 function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [carbonData, setCarbonData] = useState(null);
+  const [emissionsData, setEmissionsData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [itemResponse, carbonResponse] = await Promise.all([
-          axios.get(`http://localhost:3001/items/${id}`),
-          axios.get(`http://localhost:3001/carbon/item/${id}`),
-        ]);
+        const [itemResponse, carbonResponse, emissionsResponse] =
+          await Promise.all([
+            axios.get(`http://localhost:3001/items/${id}`),
+            axios.get(`http://localhost:3001/carbon/item/${id}`),
+            axios.get(`http://localhost:3001/carbon/emission-calculator/${id}`),
+          ]);
         setItem(itemResponse.data);
 
         // Parse material_composition from string to array
@@ -52,6 +56,7 @@ function ItemDetailPage() {
         };
 
         setCarbonData(carbonDataWithParsedMaterials);
+        setEmissionsData(emissionsResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -61,7 +66,7 @@ function ItemDetailPage() {
     fetchData();
   }, [id]);
 
-  console.log(carbonData);
+  console.log(emissionsData);
 
   const InfoCard = ({ icon, title, value, unit }) => {
     // Color mapping for different card types
@@ -182,7 +187,7 @@ function ItemDetailPage() {
           Environmental Impact
         </Text>
 
-        {carbonData && (
+        {carbonData && emissionsData && (
           <Grid templateColumns={"repeat(2, 1fr)"} gap={4} mb={8}>
             <InfoCard
               icon={MdCategory}
@@ -266,6 +271,154 @@ function ItemDetailPage() {
               </VStack>
             </Box>
           </Grid>
+        )}
+
+        {carbonData && emissionsData && (
+          <>
+            <Text fontSize="xl" fontWeight="bold" mb={4} mt={8}>
+              Carbon Footprint Analysis
+            </Text>
+            <Box
+              p={4}
+              borderRadius="xl"
+              bg="green.50"
+              border="1px"
+              borderColor="green.200"
+              mb={8}
+            >
+              <VStack spacing={6} align="stretch">
+                <VStack align="start" spacing={1} mb={2}>
+                  <HStack spacing={2}>
+                    <Icon as={FaLeaf} boxSize={5} color="green.500" />
+                    <Text fontSize="md" fontWeight="bold" color="green.700">
+                      Total Carbon Emissions
+                    </Text>
+                  </HStack>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="bold"
+                    color="green.700"
+                    pl={7}
+                  >
+                    {emissionsData.total_emissions_kg} kg CO₂e
+                  </Text>
+                </VStack>
+
+                <Grid templateColumns={{ base: "1fr" }} gap={4}>
+                  <Box>
+                    <HStack justify="space-between" mb={1}>
+                      <Text fontSize="sm" fontWeight="medium" color="blue.700">
+                        Materials
+                      </Text>
+                      <HStack spacing={1}>
+                        <Text fontSize="sm" color="blue.600" fontWeight="bold">
+                          {(
+                            (emissionsData.breakdown.material_emissions_kg /
+                              emissionsData.total_emissions_kg) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </Text>
+                        <Text fontSize="sm" color="gray.600">
+                          ({emissionsData.breakdown.material_emissions_kg} kg
+                          CO₂e)
+                        </Text>
+                      </HStack>
+                    </HStack>
+                    <Box
+                      w={`${
+                        (emissionsData.breakdown.material_emissions_kg /
+                          emissionsData.total_emissions_kg) *
+                        100
+                      }%`}
+                      h="8px"
+                      bg="blue.400"
+                      borderRadius="full"
+                    />
+                  </Box>
+
+                  <Box>
+                    <HStack justify="space-between" mb={1}>
+                      <Text
+                        fontSize="sm"
+                        fontWeight="medium"
+                        color="orange.700"
+                      >
+                        Transportation
+                      </Text>
+                      <HStack spacing={1}>
+                        <Text
+                          fontSize="sm"
+                          color="orange.600"
+                          fontWeight="bold"
+                        >
+                          {(
+                            (emissionsData.breakdown.transport_emissions_kg /
+                              emissionsData.total_emissions_kg) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </Text>
+                        <Text fontSize="sm" color="gray.600">
+                          ({emissionsData.breakdown.transport_emissions_kg} kg
+                          CO₂e)
+                        </Text>
+                      </HStack>
+                    </HStack>
+                    <Box
+                      w={`${
+                        (emissionsData.breakdown.transport_emissions_kg /
+                          emissionsData.total_emissions_kg) *
+                        100
+                      }%`}
+                      h="8px"
+                      bg="orange.400"
+                      borderRadius="full"
+                    />
+                  </Box>
+
+                  <Box>
+                    <HStack justify="space-between" mb={1}>
+                      <Text
+                        fontSize="sm"
+                        fontWeight="medium"
+                        color="purple.700"
+                      >
+                        Usage
+                      </Text>
+                      <HStack spacing={1}>
+                        <Text
+                          fontSize="sm"
+                          color="purple.600"
+                          fontWeight="bold"
+                        >
+                          {(
+                            (emissionsData.breakdown.usage_emissions_kg /
+                              emissionsData.total_emissions_kg) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </Text>
+                        <Text fontSize="sm" color="gray.600">
+                          ({emissionsData.breakdown.usage_emissions_kg} kg CO₂e)
+                        </Text>
+                      </HStack>
+                    </HStack>
+                    <Box
+                      w={`${
+                        (emissionsData.breakdown.usage_emissions_kg /
+                          emissionsData.total_emissions_kg) *
+                        100
+                      }%`}
+                      h="8px"
+                      bg="purple.400"
+                      borderRadius="full"
+                    />
+                  </Box>
+                </Grid>
+              </VStack>
+            </Box>
+          </>
         )}
       </Flex>
     </Flex>

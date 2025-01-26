@@ -6,15 +6,26 @@ import {
   Button,
   Badge,
   Flex,
+  HStack,
+  Icon,
+  Grid,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import axios from "axios";
+import {
+  FaHandHoldingHeart,
+  FaBoxOpen,
+  FaLeaf,
+  FaTree,
+  FaEye,
+} from "react-icons/fa";
 
 function RentPage() {
   const [items, setItems] = useState([]);
   const [userEmail, setUserEmail] = useState(null);
+  const [totalEmissions, setTotalEmissions] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,7 +41,7 @@ function RentPage() {
   }, [navigate]);
 
   useEffect(() => {
-    const fetchRentedItems = async () => {
+    const fetchData = async () => {
       if (!userEmail) return;
 
       try {
@@ -38,15 +49,34 @@ function RentPage() {
           `http://localhost:3001/renters/email/${userEmail}`
         );
         setItems(response.data);
+
+        // Fetch emissions data for each item
+        const emissionsPromises = response.data.map((item) =>
+          axios
+            .get(`http://localhost:3001/carbon/emission-calculator/${item.id}`)
+            .then((response) => response.data)
+            .catch(() => null)
+        );
+
+        const emissionsResponses = await Promise.all(emissionsPromises);
+        const validEmissions = emissionsResponses.filter(
+          (response) => response !== null
+        );
+
+        const totalSaved = validEmissions.reduce(
+          (sum, data) => sum + data.total_emissions_kg,
+          0
+        );
+        setTotalEmissions(totalSaved);
       } catch (error) {
         if (error.response?.status !== 404) {
-          console.error("Error fetching rented items:", error);
+          console.error("Error fetching data:", error);
         }
         setItems([]);
       }
     };
 
-    fetchRentedItems();
+    fetchData();
   }, [userEmail]);
 
   const handlePickupConfirmation = async (itemId) => {
@@ -98,11 +128,79 @@ function RentPage() {
     }
   };
 
+  const ImpactStat = ({ icon, label, value, unit }) => (
+    <Box
+      p={4}
+      borderRadius="lg"
+      bg="white"
+      shadow="sm"
+      border="1px"
+      borderColor="green.100"
+    >
+      <VStack spacing={1} align="center">
+        <Icon as={icon} boxSize={5} color="green.500" mb={1} />
+        <Text fontSize="xs" color="green.600" fontWeight="medium">
+          {label}
+        </Text>
+        <HStack spacing={1} align="baseline">
+          <Text fontSize="xl" fontWeight="bold" color="green.700">
+            {value}
+          </Text>
+          {unit && (
+            <Text fontSize="xs" color="green.600">
+              {unit}
+            </Text>
+          )}
+        </HStack>
+      </VStack>
+    </Box>
+  );
+
   return (
     <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto">
-      <Text fontSize="2xl" fontWeight="bold">
-        My Rentals
-      </Text>
+      <Box
+        w="full"
+        bg="green.50"
+        p={4}
+        borderRadius="xl"
+        border="1px"
+        borderColor="green.200"
+      >
+        <VStack spacing={4}>
+          <HStack spacing={2}>
+            <Icon as={FaHandHoldingHeart} boxSize={5} color="green.500" />
+            <Text fontSize="lg" fontWeight="bold" color="green.700">
+              Your Environmental Impact
+            </Text>
+          </HStack>
+
+          <VStack spacing={3} w="full">
+            <Grid templateColumns="repeat(2, 1fr)" gap={3} w="full">
+              <ImpactStat
+                icon={FaBoxOpen}
+                label="Items Rented"
+                value={items.length}
+              />
+
+              <ImpactStat
+                icon={FaLeaf}
+                label="CO₂e Saved"
+                value={totalEmissions.toFixed(1)}
+                unit="kg"
+              />
+            </Grid>
+
+            <Box w="full">
+              <ImpactStat
+                icon={FaTree}
+                label="Trees Equivalent"
+                value={(totalEmissions / 21).toFixed(1)}
+                unit="trees"
+              />
+            </Box>
+          </VStack>
+        </VStack>
+      </Box>
 
       {items.length === 0 ? (
         <Text color="gray.500">No items rented yet</Text>
@@ -143,7 +241,17 @@ function RentPage() {
                 ${item.rental_fee}/day
               </Text>
 
-              {getStatusButton(item.status, item.id, item.name)}
+              <HStack spacing={2} mt={3}>
+                <Button
+                  size="sm"
+                  leftIcon={<FaEye />}
+                  variant="outline"
+                  colorScheme="blue"
+                  onClick={() => navigate(`/items/${item.id}`)}
+                >
+                  View Item
+                </Button>
+              </HStack>
             </Box>
           </Flex>
         ))
