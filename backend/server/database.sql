@@ -7,6 +7,7 @@ CREATE TABLE Items (
     rental_fee INTEGER NOT NULL,
     collateral INTEGER NOT NULL,
     days_limit INTEGER NOT NULL,
+    days_rented INTEGER NOT NULL,
     images TEXT[] NOT NULL,
     status item_status NOT NULL
 );

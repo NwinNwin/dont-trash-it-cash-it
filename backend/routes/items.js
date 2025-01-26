@@ -4,13 +4,42 @@ const pool = require("../db");
 // Create item
 router.post("/", async (req, res) => {
   try {
-    const { name, description, rental_fee, collateral, days_limit, images } =
-      req.body;
-    const newItem = await pool.query(
-      "INSERT INTO Items (name, description, rental_fee, collateral, days_limit, images, status) VALUES($1, $2, $3, $4, $5, $6, 'Listed') RETURNING *",
-      [name, description, rental_fee, collateral, days_limit, images]
-    );
-    res.json(newItem.rows[0]);
+    const {
+      name,
+      description,
+      rental_fee,
+      collateral,
+      days_limit,
+      images,
+      email,
+    } = req.body;
+
+    // Begin transaction
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      // First, create the item with days_rented = 0
+      const newItem = await client.query(
+        "INSERT INTO Items (name, description, rental_fee, collateral, days_limit, days_rented, images, status) VALUES($1, $2, $3, $4, $5, 0, $6, 'Listed') RETURNING *",
+        [name, description, rental_fee, collateral, days_limit, images]
+      );
+
+      // Then, create the lender entry using the returned item id
+      await client.query(
+        "INSERT INTO Lender (item_id, email, is_picked_up, is_returned) VALUES($1, $2, false, false)",
+        [newItem.rows[0].id, email]
+      );
+
+      await client.query("COMMIT");
+      res.json(newItem.rows[0]);
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).json("Server Error");
@@ -52,9 +81,10 @@ router.put("/:id", async (req, res) => {
       days_limit,
       images,
       status,
+      days_rented,
     } = req.body;
     const updateItem = await pool.query(
-      "UPDATE items SET name = $1, description = $2, rental_fee = $3, collateral = $4, days_limit = $5, images = $6, status = $7 WHERE id = $8 RETURNING *",
+      "UPDATE items SET name = $1, description = $2, rental_fee = $3, collateral = $4, days_limit = $5, images = $6, status = $7, days_rented = $8 WHERE id = $9 RETURNING *",
       [
         name,
         description,
@@ -63,6 +93,7 @@ router.put("/:id", async (req, res) => {
         days_limit,
         images,
         status,
+        days_rented,
         id,
       ]
     );

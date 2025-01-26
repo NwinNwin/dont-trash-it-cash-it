@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useRef, useEffect } from "react";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../firebase";
+import { storage, auth } from "../firebase";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +30,7 @@ function ListItemPage() {
   const [daysLimit, setDaysLimit] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
 
   const navigate = useNavigate();
   const fileInputRefs = [
@@ -59,18 +60,39 @@ function ListItemPage() {
     }
   };
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserEmail(user.email);
+      } else {
+        // Redirect to login if no user is found
+        navigate("/signin");
+      }
+    });
+
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setIsLoading(true);
 
       // Validate required fields
-      if (!name || !description || !rentalFee || !collateral || !daysLimit) {
+      if (
+        !name ||
+        !description ||
+        !rentalFee ||
+        !collateral ||
+        !daysLimit ||
+        !userEmail
+      ) {
         alert("Please fill in all required fields");
         return;
       }
 
-      // Create item in database
+      // Create item in database with email
       const response = await axios.post(`http://localhost:3001/items`, {
         name,
         description,
@@ -78,7 +100,8 @@ function ListItemPage() {
         collateral: parseFloat(collateral),
         days_limit: parseInt(daysLimit),
         images,
-        status: "Listed",
+        email: userEmail,
+        // days_rented will be set to 0 by default in the backend
       });
 
       alert("Item listed successfully");

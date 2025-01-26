@@ -10,6 +10,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
+import { auth } from "../firebase";
 import axios from "axios";
 
 function CheckoutPage() {
@@ -18,7 +19,20 @@ function CheckoutPage() {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(1);
+  const [userEmail, setUserEmail] = useState(null);
   const walletAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserEmail(user.email);
+      } else {
+        navigate("/signin");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -56,6 +70,28 @@ function CheckoutPage() {
     } else {
       const numValue = parseInt(value);
       setDays(numValue >= 1 ? numValue : 1);
+    }
+  };
+
+  const handleSubmitPayment = async () => {
+    try {
+      // First update the item with days_rented
+      await axios.put(`http://localhost:3001/items/${id}`, {
+        ...item, // Spread existing item properties
+        days_rented: days, // Add the new days_rented value
+      });
+
+      // Then create renter record
+      await axios.post("http://localhost:3001/renters", {
+        item_id: parseInt(id),
+        email: userEmail,
+      });
+
+      // Navigate to confirmation page
+      navigate(`/checkout_confirmation/${id}`);
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      alert("Failed to process payment. Please try again.");
     }
   };
 
@@ -145,7 +181,8 @@ function CheckoutPage() {
         size="lg"
         w="full"
         colorScheme="green"
-        onClick={() => navigate(`/checkout_confirmation/${id}`)}
+        onClick={handleSubmitPayment}
+        isDisabled={!userEmail}
       >
         Submit Payment
       </Button>

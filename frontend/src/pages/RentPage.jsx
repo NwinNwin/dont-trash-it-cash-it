@@ -9,15 +9,30 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 import axios from "axios";
 
 function RentPage() {
   const [items, setItems] = useState([]);
+  const [userEmail, setUserEmail] = useState(null);
   const navigate = useNavigate();
-  const userEmail = "user1@example.com"; // TODO: Replace with actual user email from auth
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserEmail(user.email);
+      } else {
+        navigate("/signin");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchRentedItems = async () => {
+      if (!userEmail) return;
+
       try {
         const response = await axios.get(
           `http://localhost:3001/renters/email/${userEmail}`
