@@ -8,8 +8,11 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import fakeData from "../utils/fakeData";
+import { useNavigate } from "react-router-dom";
 
 function RentPage() {
+  const navigate = useNavigate();
+
   // Simulated rental data
   const rentals = [
     {
@@ -29,19 +32,41 @@ function RentPage() {
     },
   ];
 
-  const getStatusButton = (status) => {
+  const getStatusButton = (status, itemId, itemName) => {
     switch (status) {
       case "Awaiting pickup":
-        return <Button size="sm">Confirm Item is picked up</Button>;
+        return (
+          <Button
+            size="sm"
+            onClick={() =>
+              navigate(`/waiting/${itemId}`, {
+                state: { itemName },
+              })
+            }
+          >
+            Confirm Item is picked up
+          </Button>
+        );
       case "Renting":
-        return <Button size="sm">Confirm Return</Button>;
+        return (
+          <Button
+            size="sm"
+            onClick={() =>
+              navigate(`/waiting/${itemId}`, {
+                state: { itemName },
+              })
+            }
+          >
+            Confirm Return
+          </Button>
+        );
       default:
         return null;
     }
   };
 
   return (
-    <VStack spacing={6} w="full" maxW="container.md" p={4} mt={16} mb={20}>
+    <VStack spacing={6} w="full" maxW="container.md" px={4} py={16} mb={20}>
       <Text fontSize="2xl" fontWeight="bold" alignSelf="start">
         My Rentals
       </Text>
@@ -86,7 +111,7 @@ function RentPage() {
               {item.email}
             </Text>
 
-            {getStatusButton(item.status)}
+            {getStatusButton(item.status, item.id, item.name)}
           </Box>
         </Flex>
       ))}

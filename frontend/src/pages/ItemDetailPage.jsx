@@ -1,13 +1,40 @@
-import { Flex, Text, Button, Box } from "@chakra-ui/react";
+import { Flex, Text, Button, Box, Spinner } from "@chakra-ui/react";
 import ImageCarousel from "../components/ImageCarousel";
-import fakeData from "../utils/fakeData";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useState, useEffect } from "react";
 
 function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const itemId = id - 1;
-  const item = fakeData[itemId];
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/items/${id}`);
+        setItem(response.data);
+      } catch (error) {
+        console.error("Error fetching item:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItem();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
+
+  if (!item) {
+    return <Text>Item not found</Text>;
+  }
 
   return (
     <Flex direction="column" align="center" py={16} w="full">

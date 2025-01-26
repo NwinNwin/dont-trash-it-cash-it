@@ -12,6 +12,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/items", require("./routes/items"));
+app.use("/lenders", require("./routes/lenders"));
+app.use("/renters", require("./routes/renters"));
+app.use("/users", require("./routes/users"));
+
 app.get("/", async (req, res) => {
   try {
     res.json("Hello");

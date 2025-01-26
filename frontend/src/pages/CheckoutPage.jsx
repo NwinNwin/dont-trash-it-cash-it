@@ -1,22 +1,58 @@
-import { useParams } from "react-router-dom";
-import { Flex, Text, Box, Image, Input, VStack, Button } from "@chakra-ui/react";
-import { useState } from "react";
-import fakeData from "../utils/fakeData";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Flex,
+  Text,
+  Box,
+  Image,
+  Input,
+  VStack,
+  Button,
+  Spinner,
+} from "@chakra-ui/react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 function CheckoutPage() {
   const { id } = useParams();
-  const itemId = id - 1;
-  const item = fakeData[itemId];
+  const navigate = useNavigate();
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(1);
   const walletAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/items/${id}`);
+        setItem(response.data);
+      } catch (error) {
+        console.error("Error fetching item:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItem();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
+
+  if (!item) {
+    return <Text>Item not found</Text>;
+  }
 
   const rentalTotal = item.rental_fee * days;
   const finalTotal = rentalTotal + item.collateral;
 
   const handleDaysChange = (e) => {
     const value = e.target.value;
-    if (value === '') {
-      setDays('');
+    if (value === "") {
+      setDays("");
     } else {
       const numValue = parseInt(value);
       setDays(numValue >= 1 ? numValue : 1);
@@ -57,7 +93,8 @@ function CheckoutPage() {
           w="200px"
         />
         <Text fontSize="lg" color="green.600">
-          Rental Total: ${days ? rentalTotal : 0} (${item.rental_fee} × {days || 0} days)
+          Rental Total: ${days ? rentalTotal : 0} (${item.rental_fee} ×{" "}
+          {days || 0} days)
         </Text>
       </VStack>
 
@@ -108,7 +145,7 @@ function CheckoutPage() {
         size="lg"
         w="full"
         colorScheme="green"
-        onClick={() => console.log('Submit clicked')}
+        onClick={() => navigate(`/checkout_confirmation/${id}`)}
       >
         Submit Payment
       </Button>

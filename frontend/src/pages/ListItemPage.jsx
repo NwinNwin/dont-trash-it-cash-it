@@ -11,11 +11,27 @@ import {
   HStack,
   Container,
   Heading,
+  SimpleGrid,
+  Spinner,
 } from "@chakra-ui/react";
 import { useState, useRef, useEffect } from "react";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function ListItemPage() {
-  const [images, setImages] = useState(Array(4).fill(null));
+  const [images, setImages] = useState([]);
+  const [imageFiles, setImageFiles] = useState(Array(4).fill(null));
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [rentalFee, setRentalFee] = useState("");
+  const [collateral, setCollateral] = useState("");
+  const [daysLimit, setDaysLimit] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const navigate = useNavigate();
   const fileInputRefs = [
     useRef(null),
     useRef(null),
@@ -23,13 +39,55 @@ function ListItemPage() {
     useRef(null),
   ];
 
-  const handleImageUpload = (index, event) => {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith("image/")) {
-      const imageUrl = URL.createObjectURL(file);
-      const newImages = [...images];
-      newImages[index] = imageUrl;
-      setImages(newImages);
+  const handleImageUpload = async (e) => {
+    try {
+      setUploading(true);
+      const files = Array.from(e.target.files);
+      const uploadPromises = files.map(async (file) => {
+        const storageRef = ref(storage, `items/${Date.now()}-${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        return getDownloadURL(snapshot.ref);
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setImages((prevImages) => [...prevImages, ...uploadedUrls]);
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      // Add error handling/notification here
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+
+      // Validate required fields
+      if (!name || !description || !rentalFee || !collateral || !daysLimit) {
+        alert("Please fill in all required fields");
+        return;
+      }
+
+      // Create item in database
+      const response = await axios.post(`http://localhost:3001/items`, {
+        name,
+        description,
+        rental_fee: parseFloat(rentalFee),
+        collateral: parseFloat(collateral),
+        days_limit: parseInt(daysLimit),
+        images,
+        status: "Listed",
+      });
+
+      alert("Item listed successfully");
+      navigate(`/items/${response.data.id}`);
+    } catch (error) {
+      console.error("Error submitting item:", error);
+      alert("Failed to list item. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -37,7 +95,9 @@ function ListItemPage() {
     return () => {
       // Cleanup URLs when component unmounts
       images.forEach((url) => {
-        if (url) URL.revokeObjectURL(url);
+        if (url && url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
       });
     };
   }, [images]);
@@ -56,126 +116,116 @@ function ListItemPage() {
           List Item
         </Heading>
 
-        {/* Image Upload Grid */}
-        <VStack w="full" spacing={4}>
-          <Text fontWeight="medium" alignSelf="start" color="gray.700">
-            Photos
-          </Text>
-          <Grid templateColumns="repeat(4, 1fr)" gap={4} w="full">
-            {images.map((img, index) => (
-              <Box
-                key={index}
-                bg="gray.50"
-                aspectRatio={1}
-                borderRadius="lg"
-                overflow="hidden"
-                cursor="pointer"
-                onClick={() => fileInputRefs[index].current?.click()}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                position="relative"
-                border="2px dashed"
-                borderColor={img ? "transparent" : "gray.200"}
-                transition="all 0.2s"
-                _hover={{
-                  borderColor: img ? "transparent" : "gray.300",
-                  bg: img ? "gray.50" : "gray.100",
-                }}
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRefs[index]}
-                  onChange={(e) => handleImageUpload(index, e)}
-                  style={{ display: "none" }}
+        <form onSubmit={handleSubmit}>
+          {/* Image Upload */}
+          <VStack spacing={4} align="start" w="full">
+            <Text fontWeight="medium">Images</Text>
+            <Input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploading}
+              p={1}
+            />
+            {uploading && <Spinner size="sm" />}
+          </VStack>
+
+          {/* Image Preview */}
+          {images.length > 0 && (
+            <SimpleGrid columns={[2, 3]} spacing={4} my={4}>
+              {images.map((url, index) => (
+                <Image
+                  key={index}
+                  src={url}
+                  alt={`Preview ${index + 1}`}
+                  borderRadius="md"
+                  objectFit="cover"
+                  boxSize="100px"
                 />
-                {index === 0 && !img && (
-                  <Text color="gray.500" fontSize="sm" fontWeight="medium">
-                    UPLOAD
-                  </Text>
-                )}
-                {img && (
-                  <Image
-                    src={img}
-                    alt={`Upload ${index + 1}`}
-                    objectFit="cover"
-                    w="100%"
-                    h="100%"
-                  />
-                )}
-              </Box>
-            ))}
-          </Grid>
-        </VStack>
+              ))}
+            </SimpleGrid>
+          )}
 
-        {/* Item Details */}
-        <VStack spacing={6} w="full">
-          <Input
-            placeholder="What are you selling?"
-            size="lg"
-            borderRadius="md"
-            _placeholder={{ color: "gray.400" }}
-          />
-          <Textarea
-            placeholder="Describe your item (5+ words)"
-            minH="120px"
-            size="lg"
-            borderRadius="md"
-            _placeholder={{ color: "gray.400" }}
-          />
-        </VStack>
-
-        {/* Pricing Section */}
-        <VStack spacing={6} w="full">
-          <Text fontSize="xl" fontWeight="semibold" alignSelf="start">
-            Pricing
-          </Text>
-
-          <HStack w="full" spacing={4}>
-            <Text color="gray.600">$</Text>
+          {/* Item Details */}
+          <VStack spacing={6} w="full">
             <Input
-              type="number"
-              placeholder="Set your daily rate"
+              placeholder="What are you selling?"
               size="lg"
               borderRadius="md"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              _placeholder={{ color: "gray.400" }}
             />
-            <Text color="gray.600">per day</Text>
-          </HStack>
-
-          <HStack w="full" spacing={4}>
-            <Text color="gray.600">$</Text>
-            <Input
-              type="number"
-              placeholder="Set your Collateral"
+            <Textarea
+              placeholder="Describe your item (5+ words)"
+              minH="120px"
               size="lg"
               borderRadius="md"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              _placeholder={{ color: "gray.400" }}
             />
-          </HStack>
+          </VStack>
 
-          <Input
-            type="number"
-            placeholder="Days limit"
+          {/* Pricing Section */}
+          <VStack spacing={6} w="full">
+            <Text fontSize="xl" fontWeight="semibold" alignSelf="start">
+              Pricing
+            </Text>
+
+            <HStack w="full" spacing={4}>
+              <Text color="gray.600">$</Text>
+              <Input
+                type="number"
+                placeholder="Set your daily rate"
+                size="lg"
+                borderRadius="md"
+                value={rentalFee}
+                onChange={(e) => setRentalFee(e.target.value)}
+              />
+              <Text color="gray.600">per day</Text>
+            </HStack>
+
+            <HStack w="full" spacing={4}>
+              <Text color="gray.600">$</Text>
+              <Input
+                type="number"
+                placeholder="Set your Collateral"
+                size="lg"
+                borderRadius="md"
+                value={collateral}
+                onChange={(e) => setCollateral(e.target.value)}
+              />
+            </HStack>
+
+            <Input
+              type="number"
+              placeholder="Days limit"
+              size="lg"
+              borderRadius="md"
+              value={daysLimit}
+              onChange={(e) => setDaysLimit(e.target.value)}
+            />
+          </VStack>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            w="full"
             size="lg"
+            colorScheme="blue"
+            mt={4}
             borderRadius="md"
-          />
-        </VStack>
-
-        {/* Submit Button */}
-        <Button
-          w="full"
-          size="lg"
-          colorScheme="blue"
-          mt={4}
-          borderRadius="md"
-          onClick={() => console.log("List item")}
-          _hover={{
-            transform: "translateY(-1px)",
-            boxShadow: "md",
-          }}
-        >
-          Confirm and List
-        </Button>
+            isLoading={isLoading}
+            _hover={{
+              transform: "translateY(-1px)",
+              boxShadow: "md",
+            }}
+          >
+            List Item
+          </Button>
+        </form>
       </VStack>
     </Container>
   );

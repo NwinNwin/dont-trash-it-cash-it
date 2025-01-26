@@ -1,7 +1,18 @@
-import { VStack, Text, Image, Box, Button, Badge, Flex } from "@chakra-ui/react";
+import {
+  VStack,
+  Text,
+  Image,
+  Box,
+  Button,
+  Badge,
+  Flex,
+} from "@chakra-ui/react";
 import fakeData from "../utils/fakeData";
+import { useNavigate } from "react-router-dom";
 
 function LendPage() {
+  const navigate = useNavigate();
+
   // Simulated lending data
   const lendings = [
     {
@@ -21,23 +32,45 @@ function LendPage() {
     },
   ];
 
-  const getStatusButton = (status) => {
+  const getStatusButton = (status, itemId, itemName) => {
     switch (status) {
       case "Awaiting pickup":
-        return <Button size="sm">Confirm Item is picked up</Button>;
+        return (
+          <Button
+            size="sm"
+            onClick={() =>
+              navigate(`/waiting/${itemId}`, {
+                state: { itemName },
+              })
+            }
+          >
+            Confirm Item is picked up
+          </Button>
+        );
       case "Lending":
-        return <Button size="sm">Confirm Return</Button>;
+        return (
+          <Button
+            size="sm"
+            onClick={() =>
+              navigate(`/waiting/${itemId}`, {
+                state: { itemName },
+              })
+            }
+          >
+            Confirm Return
+          </Button>
+        );
       default:
         return null;
     }
   };
 
   return (
-    <VStack spacing={6} w="full" maxW="container.md" p={4} mt={16} mb={20}>
+    <VStack spacing={6} w="full" maxW="container.md" px={4} py={16} mb={20}>
       <Text fontSize="2xl" fontWeight="bold" alignSelf="start">
         My Lendings
       </Text>
-      
+
       {lendings.map((item, index) => (
         <Flex
           key={index}
@@ -55,29 +88,29 @@ function LendPage() {
             objectFit="cover"
             borderRadius="md"
           />
-          
+
           <Box flex={1}>
             <Badge mb={2} px={2} py={1} borderRadius="full" bg="gray.200">
               {item.status}
             </Badge>
-            
+
             <Text fontSize="lg" fontWeight="semibold">
               {item.name}
             </Text>
-            
+
             <Text color="green.600" fontSize="md">
               ${item.rental_fee} / day
             </Text>
-            
+
             <Text fontSize="sm" color="gray.500">
               + ${item.collateral} collateral
             </Text>
-            
+
             <Text fontSize="sm" mt={1}>
               To: {item.email}
             </Text>
-            
-            {getStatusButton(item.status)}
+
+            {getStatusButton(item.status, item.id, item.name)}
           </Box>
         </Flex>
       ))}
@@ -85,4 +118,4 @@ function LendPage() {
   );
 }
 
-export default LendPage; 
+export default LendPage;

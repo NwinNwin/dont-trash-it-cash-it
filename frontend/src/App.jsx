@@ -8,6 +8,9 @@ import CheckoutPage from "./pages/CheckoutPage";
 import ListItemPage from "./pages/ListItemPage";
 import RentPage from "./pages/RentPage";
 import LendPage from "./pages/LendPage";
+import CheckoutConfirmationPage from "./pages/CheckoutConfirmationPage";
+import WaitingPage from "./pages/WaitingPage";
+import PickupConfirmationPage from "./pages/PickupConfirmationPage";
 
 const App = () => {
   return (
@@ -34,6 +37,21 @@ const App = () => {
 
           {/* Route for the lend page */}
           <Route path="/lend" element={<LendPage />} />
+
+          {/* Route for the checkout confirmation page */}
+          <Route
+            path="/checkout_confirmation/:id"
+            element={<CheckoutConfirmationPage />}
+          />
+
+          {/* Update the waiting page route to include id parameter */}
+          <Route path="/waiting/:id" element={<WaitingPage />} />
+
+          {/* Add the new pickup confirmation page route */}
+          <Route
+            path="/pickup-confirmation/:id"
+            element={<PickupConfirmationPage />}
+          />
         </Routes>
 
         {/* Footer remains persistent across all routes */}
