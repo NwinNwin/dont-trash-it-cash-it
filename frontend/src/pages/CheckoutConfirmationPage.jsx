@@ -1,10 +1,28 @@
 import { VStack, Text, Box, Circle, Button, Icon } from "@chakra-ui/react";
 import { MdCheckCircle } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 function CheckoutConfirmationPage() {
   const navigate = useNavigate();
-  const lenderEmail = "anteater@uci.edu"; // Hardcoded email for demo
+  const { id } = useParams();
+  const [lenderEmail, setLenderEmail] = useState("");
+
+  useEffect(() => {
+    const fetchLenderEmail = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/lenders/${id}`);
+        setLenderEmail(response.data.email);
+      } catch (error) {
+        console.error("Error fetching lender email:", error);
+      }
+    };
+
+    if (id) {
+      fetchLenderEmail();
+    }
+  }, [id]);
 
   return (
     <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto" align="center">
@@ -32,7 +50,7 @@ function CheckoutConfirmationPage() {
 
         <Box>
           <Text fontWeight="medium">Lender's Email:</Text>
-          <Text>{lenderEmail}</Text>
+          <Text>{lenderEmail || "Loading..."}</Text>
         </Box>
       </VStack>
 

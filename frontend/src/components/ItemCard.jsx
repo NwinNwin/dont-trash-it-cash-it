@@ -1,6 +1,6 @@
-import { Flex, Image, Text, Box, Icon, HStack } from "@chakra-ui/react";
+import { Flex, Image, Text, Box, Icon, HStack, VStack } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { FaLeaf } from "react-icons/fa";
+import { FaLeaf, FaTree } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -22,22 +22,18 @@ const ItemCard = ({ id, images, rental_fee, name }) => {
     fetchEmissions();
   }, [id]);
 
-  const handleCardClick = () => {
-    navigate(`/items/${id}`);
-  };
-
   return (
     <Box
-      onClick={handleCardClick}
       bg="white"
       borderRadius="2xl"
       boxShadow="lg"
       overflow="hidden"
       w={172}
-      cursor="pointer"
       key={id}
+      onClick={() => navigate(`/items/${id}`)}
+      cursor="pointer"
     >
-      <Image h="150px" objectFit="cover" src={images[0]} alt={name} />
+      <Image mx="auto" h="150px" objectFit="cover" src={images[0]} alt={name} />
       <Box p={4}>
         <Text
           fontSize="lg"
@@ -56,12 +52,20 @@ const ItemCard = ({ id, images, rental_fee, name }) => {
           </Text>
         </Flex>
         {emissionsData && (
-          <HStack spacing={1} color="gray.600">
-            <Icon as={FaLeaf} color="green.500" />
-            <Text fontSize="sm">
-              {emissionsData.total_emissions_kg} kg CO₂e
-            </Text>
-          </HStack>
+          <VStack spacing={1} align="stretch">
+            <HStack spacing={1} color="gray.600">
+              <Icon as={FaLeaf} color="green.500" />
+              <Text fontSize="sm">
+                {emissionsData.total_emissions_kg} kg CO₂e
+              </Text>
+            </HStack>
+            <HStack spacing={1} color="gray.600">
+              <Icon as={FaTree} color="green.700" />
+              <Text fontSize="sm">
+                {(emissionsData.total_emissions_kg / 21).toFixed(1)} trees
+              </Text>
+            </HStack>
+          </VStack>
         )}
       </Box>
     </Box>

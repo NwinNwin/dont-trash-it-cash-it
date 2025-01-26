@@ -104,6 +104,7 @@ function CheckoutPage() {
       px={4}
       maxW="800px"
       mx="auto"
+      mb={16}
     >
       {/* Item Summary Section */}
       <Flex gap={6} w="full" align="center" mb={6}>
@@ -143,10 +144,10 @@ function CheckoutPage() {
           What's Next?
         </Text>
         <Text color="gray.700">
-          Your payment will be held securely in our smart contract. Once
-          confirmed, you'll need to arrange a meetup with the lender to collect
-          the item. The collateral will be returned when you return the item in
-          its original condition.
+          Your payment and collateral will be given directly to the lender
+          during a meetup. Once confirmed, arrange a meetup with the lender to
+          collect the item. The lender will return your collateral when you
+          return the item in its original condition.
         </Text>
       </VStack>
 
@@ -157,9 +158,7 @@ function CheckoutPage() {
         <Text fontSize="xl" fontWeight="bold">
           Payment Summary
         </Text>
-        <Text fontSize="sm" color="gray.600">
-          Your Wallet: {walletAddress}
-        </Text>
+
         <VStack spacing={1} w="full" align="start">
           <Flex justify="space-between" w="full">
             <Text>Rental Fee ({days} days)</Text>

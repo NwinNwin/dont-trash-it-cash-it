@@ -271,17 +271,9 @@ router.get("/emission-calculator/:item_id", async (req, res) => {
     const usageEmissions =
       usage_energy_kwh_per_year * lifetime_years * energyEmissionFactor;
 
-    console.log(usage_energy_kwh_per_year);
-    console.log(lifetime_years);
-    console.log(energyEmissionFactor);
-
     // Total Emissions
     const totalEmissions =
       materialEmissions + transportEmissions + usageEmissions;
-
-    // console.log(materialEmissions);
-    // console.log(transportEmissions);
-    // console.log(usageEmissions);
 
     res.json({
       total_emissions_kg: parseFloat(totalEmissions.toFixed(2)),

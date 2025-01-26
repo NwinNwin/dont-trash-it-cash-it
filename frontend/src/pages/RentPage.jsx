@@ -113,13 +113,25 @@ function RentPage() {
     switch (status) {
       case "Awaiting Pickup":
         return (
-          <Button size="sm" onClick={() => handlePickupConfirmation(itemId)}>
+          <Button
+            mt={2}
+            bg="green.700"
+            color="white"
+            size="sm"
+            onClick={() => handlePickupConfirmation(itemId)}
+          >
             Confirm Item is picked up
           </Button>
         );
       case "Renting":
         return (
-          <Button size="sm" onClick={() => handleReturnConfirmation(itemId)}>
+          <Button
+            bg="green.700"
+            color="white"
+            mt={2}
+            size="sm"
+            onClick={() => handleReturnConfirmation(itemId)}
+          >
             Confirm Return
           </Button>
         );
@@ -157,7 +169,7 @@ function RentPage() {
   );
 
   return (
-    <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto">
+    <VStack spacing={8} pt={16} pb={20} px={4} maxW="600px" mx="auto" mb={16}>
       <Box
         w="full"
         bg="green.50"
@@ -240,6 +252,7 @@ function RentPage() {
               <Text fontSize="sm" color="gray.500" mt={2}>
                 ${item.rental_fee}/day
               </Text>
+              {getStatusButton(item.status, item.id, item.name)}
 
               <HStack spacing={2} mt={3}>
                 <Button

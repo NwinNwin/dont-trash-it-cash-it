@@ -116,13 +116,24 @@ function LendPage() {
     switch (status) {
       case "Awaiting Pickup":
         return (
-          <Button size="sm" onClick={() => handlePickupConfirmation(itemId)}>
+          <Button
+            mt={2}
+            bg="green.700"
+            size="sm"
+            onClick={() => handlePickupConfirmation(itemId)}
+          >
             Confirm Item is picked up
           </Button>
         );
       case "Renting":
         return (
-          <Button size="sm" onClick={() => handleReturnConfirmation(itemId)}>
+          <Button
+            colorScheme="green"
+            size="sm"
+            bg="green.700"
+            mt={2}
+            onClick={() => handleReturnConfirmation(itemId)}
+          >
             Confirm Return
           </Button>
         );
@@ -160,7 +171,7 @@ function LendPage() {
   );
 
   return (
-    <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto">
+    <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto" mb={16}>
       <Box
         w="full"
         bg="green.50"
@@ -244,8 +255,9 @@ function LendPage() {
                 ${item.rental_fee}/day
               </Text>
 
+              {getStatusButton(item.status, item.id, item.name)}
+
               <HStack spacing={2} mt={3}>
-                {getStatusButton(item.status, item.id, item.name)}
                 <Button
                   size="sm"
                   leftIcon={<FaEye />}

@@ -1,117 +1,127 @@
-import {
-  VStack,
-  Text,
-  Image,
-  Box,
-  Badge,
-  Flex,
-  HStack,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { useState, useEffect } from "react";
+import { VStack, Box, Text, Icon, Grid, HStack } from "@chakra-ui/react";
+import { FaHandHoldingHeart, FaLeaf, FaTree } from "react-icons/fa";
 import axios from "axios";
-import { MdPerson, MdStore } from "react-icons/md";
+import LedgerCard from "../components/LedgerCard";
 
 function LedgerPage() {
   const [items, setItems] = useState([]);
-  const [userEmail, setUserEmail] = useState(null);
-  const navigate = useNavigate();
+  const [totalEmissions, setTotalEmissions] = useState(0);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUserEmail(user.email);
-      } else {
-        navigate("/signin");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
-
-  useEffect(() => {
-    const fetchLedgerItems = async () => {
-      if (!userEmail) return;
-
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/items/ledger`);
-        setItems(response.data);
+        const response = await axios.get("http://localhost:3001/items/ledger");
+        // Filter out items with status "Listed"
+        const filteredItems = response.data.filter(
+          (item) => item.status !== "Listed"
+        );
+        setItems(filteredItems);
+
+        // Fetch emissions data for filtered items
+        const emissionsPromises = filteredItems.map((item) =>
+          axios
+            .get(`http://localhost:3001/carbon/emission-calculator/${item.id}`)
+            .then((response) => response.data)
+            .catch(() => null)
+        );
+
+        const emissionsResponses = await Promise.all(emissionsPromises);
+        const validEmissions = emissionsResponses.filter(
+          (response) => response !== null
+        );
+
+        const totalSaved = validEmissions.reduce(
+          (sum, data) => sum + data.total_emissions_kg,
+          0
+        );
+        setTotalEmissions(totalSaved);
       } catch (error) {
-        console.error("Error fetching ledger items:", error);
-        setItems([]);
+        console.error("Error fetching items:", error);
       }
     };
-
-    fetchLedgerItems();
-  }, [userEmail]);
+    fetchData();
+  }, []);
 
   return (
-    <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto" mb={16}>
-      <Text fontSize="2xl" fontWeight="bold">
-        Rental Ledger
-      </Text>
+    <VStack width="100%" spacing={8} py={16}>
+      <Box
+        w="full"
+        maxW="600px"
+        bg="blue.50"
+        p={4}
+        borderRadius="xl"
+        border="1px"
+        borderColor="green.200"
+        mx="auto"
+      >
+        <VStack spacing={4}>
+          <HStack spacing={2}>
+            <Icon as={FaHandHoldingHeart} boxSize={5} color="green.500" />
+            <Text fontSize="lg" fontWeight="bold" color="blue.700">
+              UCI Students' Environmental Impact
+            </Text>
+          </HStack>
 
-      {items.length === 0 ? (
-        <Text color="gray.500">No rental history yet</Text>
-      ) : (
-        items.map((item) => (
-          <Flex
-            key={item.id}
-            w="full"
-            borderWidth={1}
-            borderRadius="lg"
-            overflow="hidden"
-            p={4}
-            gap={4}
-            direction="column"
-          >
-            <Flex gap={4}>
-              <Image
-                src={item.images[0]}
-                alt={item.name}
-                boxSize="100px"
-                objectFit="cover"
-                borderRadius="md"
-              />
-              <Box flex={1}>
-                <Text fontSize="xl" fontWeight="semibold">
-                  {item.name}
+          <Grid templateColumns="repeat(2, 1fr)" gap={3} w="full">
+            <Box
+              p={4}
+              borderRadius="lg"
+              bg="white"
+              shadow="sm"
+              border="1px"
+              borderColor="green.100"
+            >
+              <VStack spacing={1} align="center">
+                <Icon as={FaLeaf} boxSize={5} color="green.500" mb={1} />
+                <Text fontSize="xs" color="green.600" fontWeight="medium">
+                  Total CO₂e Saved
                 </Text>
-                <Badge
-                  colorScheme={item.status === "Returned" ? "green" : "yellow"}
-                >
-                  {item.status}
-                </Badge>
-
-                <HStack spacing={4} mt={2}>
-                  <Text fontSize="sm" color="gray.500">
-                    Rental: ${item.rental_fee}/day
+                <HStack spacing={1} align="baseline">
+                  <Text fontSize="xl" fontWeight="bold" color="green.700">
+                    {totalEmissions.toFixed(1)}
                   </Text>
-                  <Text fontSize="sm" color="gray.500">
-                    Collateral: ${item.collateral}
+                  <Text fontSize="xs" color="green.600">
+                    kg
                   </Text>
                 </HStack>
-              </Box>
-            </Flex>
+              </VStack>
+            </Box>
 
-            <Box h="1px" bg="gray.200" my={2} w="full" />
+            <Box
+              p={4}
+              borderRadius="lg"
+              bg="white"
+              shadow="sm"
+              border="1px"
+              borderColor="green.100"
+            >
+              <VStack spacing={1} align="center">
+                <Icon as={FaTree} boxSize={5} color="green.500" mb={1} />
+                <Text fontSize="xs" color="green.600" fontWeight="medium">
+                  Trees Saved
+                </Text>
+                <HStack spacing={1} align="baseline">
+                  <Text fontSize="xl" fontWeight="bold" color="green.700">
+                    {(totalEmissions / 21).toFixed(1)}
+                  </Text>
+                  <Text fontSize="xs" color="green.600">
+                    trees
+                  </Text>
+                </HStack>
+              </VStack>
+            </Box>
+          </Grid>
+        </VStack>
+      </Box>
 
-            <VStack align="start" spacing={2}>
-              <Flex align="center" gap={2}>
-                <MdStore />
-                <Text fontWeight="medium">Lender:</Text>
-                <Text>{item.lender_email}</Text>
-              </Flex>
-              <Flex align="center" gap={2}>
-                <MdPerson />
-                <Text fontWeight="medium">Renter:</Text>
-                <Text>{item.renter_email}</Text>
-              </Flex>
-            </VStack>
-          </Flex>
-        ))
-      )}
+      <VStack spacing={8} px={4} maxW="600px" mx="auto">
+        {items.length === 0 ? (
+          <Text color="gray.500">No rental history yet</Text>
+        ) : (
+          items.map((item) => <LedgerCard key={item.id} item={item} />)
+        )}
+      </VStack>
     </VStack>
   );
 }

@@ -1,6 +1,12 @@
 import { Flex, Icon, Text, VStack } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { MdHome, MdShoppingCart, MdStore, MdReceipt } from "react-icons/md";
+import {
+  MdHome,
+  MdShoppingCart,
+  MdStore,
+  MdReceipt,
+  MdBook,
+} from "react-icons/md";
 
 const Footer = () => {
   const navigate = useNavigate();
@@ -39,6 +45,7 @@ const Footer = () => {
       <NavItem icon={MdShoppingCart} label="My Rentals" path="/rent" />
       <NavItem icon={MdStore} label="My Listings" path="/lend" />
       <NavItem icon={MdReceipt} label="Ledger" path="/ledger" />
+      <NavItem icon={MdBook} label="Learn" path="/learn" />
     </Flex>
   );
 };

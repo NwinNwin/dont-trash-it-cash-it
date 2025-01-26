@@ -12,7 +12,7 @@ import {
   MdShoppingBag,
 } from "react-icons/md";
 
-const Navbar = () => {
+const Utils = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
@@ -94,9 +94,10 @@ const Navbar = () => {
             colorScheme="green"
           />
         )}
+        <ColorModeButton />
       </HStack>
     </Flex>
   );
 };
 
-export default Navbar;
+export default Utils;

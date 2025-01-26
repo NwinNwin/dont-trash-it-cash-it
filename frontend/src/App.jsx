@@ -14,6 +14,8 @@ import PickupConfirmationPage from "./pages/PickupConfirmationPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import LedgerPage from "./pages/LedgerPage";
+import LearnPage from "./pages/LearnPage";
+import Utils from "./components/Utils";
 
 const App = () => {
   return (
@@ -64,6 +66,10 @@ const App = () => {
 
           {/* Add the new ledger page route */}
           <Route path="/ledger" element={<LedgerPage />} />
+
+          {/* Add the new learn page route */}
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/utils" element={<Utils />} />
         </Routes>
 
         {/* Footer remains persistent across all routes */}

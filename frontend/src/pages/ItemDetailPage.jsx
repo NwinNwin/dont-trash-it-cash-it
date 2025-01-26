@@ -23,9 +23,11 @@ import {
   MdBolt,
   MdTimer,
   MdInventory,
+  MdEmail,
 } from "react-icons/md";
 import { GiWeight } from "react-icons/gi";
 import { FaLeaf } from "react-icons/fa";
+import { MdShoppingCart } from "react-icons/md";
 
 function ItemDetailPage() {
   const { id } = useParams();
@@ -34,6 +36,8 @@ function ItemDetailPage() {
   const [carbonData, setCarbonData] = useState(null);
   const [emissionsData, setEmissionsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showEmail, setShowEmail] = useState(false);
+  const [lenderEmail, setLenderEmail] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,10 +67,21 @@ function ItemDetailPage() {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [id]);
 
-  console.log(emissionsData);
+    const fetchLenderEmail = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/lenders/${id}`);
+        setLenderEmail(response.data.email);
+      } catch (error) {
+        console.error("Error fetching lender email:", error);
+      }
+    };
+
+    if (id) {
+      fetchData();
+      fetchLenderEmail();
+    }
+  }, [id]);
 
   const InfoCard = ({ icon, title, value, unit }) => {
     // Color mapping for different card types
@@ -124,6 +139,18 @@ function ItemDetailPage() {
     );
   };
 
+  const handleEmailClick = () => {
+    if (lenderEmail) {
+      setShowEmail(true);
+      const subject = `Question about ${item.name}`;
+      const body = `Hi, I'm interested in renting your ${item.name}.`;
+      const mailtoLink = `mailto:${lenderEmail}?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(body)}`;
+      window.open(mailtoLink, "_blank");
+    }
+  };
+
   if (loading) {
     return (
       <Flex justify="center" align="center" h="100vh">
@@ -156,6 +183,9 @@ function ItemDetailPage() {
           <Text fontSize="md" color="gray.600">
             + ${item.collateral} collateral
           </Text>
+          <Text fontSize="sm" color="gray.600">
+            📅 Days limit: {item.days_limit}
+          </Text>
         </Flex>
 
         <Flex justifyContent={"center"} gap={2} mt={4}>
@@ -165,11 +195,27 @@ function ItemDetailPage() {
             w="50%"
             bg="green.500"
             onClick={() => navigate(`/checkout/${id}`)}
+            _hover={{ bg: "green.600" }}
           >
-            Rent Now
+            <HStack spacing={2}>
+              <Icon as={MdShoppingCart} boxSize={5} />
+              <Text>Rent Now</Text>
+            </HStack>
           </Button>
-          <Button size="xl" borderRadius={"lg"} w="50%" bg="black">
-            Message Lender
+          <Button
+            size="xl"
+            borderRadius={"lg"}
+            w="50%"
+            bg="blue.500"
+            onClick={handleEmailClick}
+            _hover={{ bg: "blue.600" }}
+          >
+            <HStack spacing={2}>
+              <Icon as={MdEmail} boxSize={5} />
+              <Text>
+                {showEmail && lenderEmail ? lenderEmail : "Message Lender"}
+              </Text>
+            </HStack>
           </Button>
         </Flex>
 
