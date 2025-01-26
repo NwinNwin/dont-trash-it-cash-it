@@ -237,7 +237,8 @@ function ListItemPage() {
             type="submit"
             w="full"
             size="lg"
-            colorScheme="blue"
+            bg="blue.600"
+            color="white"
             mt={4}
             borderRadius="md"
             isLoading={isLoading}
@@ -248,6 +249,8 @@ function ListItemPage() {
           >
             List Item
           </Button>
+
+          {isLoading && <Spinner color="blue" size="lg" />}
         </form>
       </VStack>
     </Container>

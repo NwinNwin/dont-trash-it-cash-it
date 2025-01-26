@@ -21,10 +21,13 @@ const CardBox = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:3001/items");
-        setItems(response.data);
+        const listedItems = response.data.filter(
+          (item) => item.status === "Listed"
+        );
+        setItems(response.data.reverse()); // Keep all items for display
 
-        // Fetch emissions data for each item
-        const emissionsPromises = response.data.map((item) =>
+        // Fetch emissions data only for Listed items
+        const emissionsPromises = listedItems.map((item) =>
           axios
             .get(`http://localhost:3001/carbon/emission-calculator/${item.id}`)
             .then((response) => response.data)
@@ -60,6 +63,11 @@ const CardBox = () => {
         />
       )
   );
+
+  // Count only Listed items
+  const listedItemsCount = items.filter(
+    (item) => item.status === "Listed"
+  ).length;
 
   return (
     <VStack width="100%" spacing={8}>
