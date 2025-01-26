@@ -28,6 +28,7 @@ import {
 import { GiWeight } from "react-icons/gi";
 import { FaLeaf } from "react-icons/fa";
 import { MdShoppingCart } from "react-icons/md";
+import { auth } from "../firebase";
 
 function ItemDetailPage() {
   const { id } = useParams();
@@ -38,6 +39,18 @@ function ItemDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showEmail, setShowEmail] = useState(false);
   const [lenderEmail, setLenderEmail] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUserEmail(user.email);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +62,13 @@ function ItemDetailPage() {
             axios.get(`http://localhost:3001/carbon/emission-calculator/${id}`),
           ]);
         setItem(itemResponse.data);
+
+        // Fetch lender email and check if current user is the owner
+        const lenderResponse = await axios.get(
+          `http://localhost:3001/lenders/${id}`
+        );
+        setLenderEmail(lenderResponse.data.email);
+        setIsOwner(lenderResponse.data.email === currentUserEmail);
 
         // Parse material_composition from string to array
         const carbonDataWithParsedMaterials = {
@@ -68,20 +88,10 @@ function ItemDetailPage() {
       }
     };
 
-    const fetchLenderEmail = async () => {
-      try {
-        const response = await axios.get(`http://localhost:3001/lenders/${id}`);
-        setLenderEmail(response.data.email);
-      } catch (error) {
-        console.error("Error fetching lender email:", error);
-      }
-    };
-
-    if (id) {
+    if (id && currentUserEmail) {
       fetchData();
-      fetchLenderEmail();
     }
-  }, [id]);
+  }, [id, currentUserEmail]);
 
   const InfoCard = ({ icon, title, value, unit }) => {
     // Color mapping for different card types
@@ -183,9 +193,6 @@ function ItemDetailPage() {
           <Text fontSize="md" color="gray.600">
             + ${item.collateral} collateral
           </Text>
-          <Text fontSize="sm" color="gray.600">
-            📅 Days limit: {item.days_limit}
-          </Text>
         </Flex>
 
         <Flex justifyContent={"center"} gap={2} mt={4}>
@@ -196,10 +203,12 @@ function ItemDetailPage() {
             bg="green.500"
             onClick={() => navigate(`/checkout/${id}`)}
             _hover={{ bg: "green.600" }}
+            isDisabled={isOwner}
+            title={isOwner ? "You cannot rent your own item" : ""}
           >
             <HStack spacing={2}>
               <Icon as={MdShoppingCart} boxSize={5} />
-              <Text>Rent Now</Text>
+              <Text>{isOwner ? "Your Item" : "Rent Now"}</Text>
             </HStack>
           </Button>
           <Button
@@ -209,11 +218,17 @@ function ItemDetailPage() {
             bg="blue.500"
             onClick={handleEmailClick}
             _hover={{ bg: "blue.600" }}
+            isDisabled={isOwner}
+            title={isOwner ? "This is your item" : ""}
           >
             <HStack spacing={2}>
               <Icon as={MdEmail} boxSize={5} />
               <Text>
-                {showEmail && lenderEmail ? lenderEmail : "Message Lender"}
+                {isOwner
+                  ? "Your Item"
+                  : showEmail && lenderEmail
+                  ? lenderEmail
+                  : "Message Lender"}
               </Text>
             </HStack>
           </Button>
@@ -224,7 +239,10 @@ function ItemDetailPage() {
         <Text fontSize="xl" fontWeight="bold" mb={2}>
           Description
         </Text>
-        <Text fontSize="md" color="gray.700" mb={9}>
+        <Text fontSize="md" color="blue.600">
+          📅 Days limit: {item.days_limit}
+        </Text>
+        <Text fontSize="md" color="gray.700" mt={2} mb={9}>
           {item.description}
         </Text>
 

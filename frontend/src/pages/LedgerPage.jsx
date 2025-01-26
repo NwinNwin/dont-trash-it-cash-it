@@ -44,7 +44,7 @@ function LedgerPage() {
   }, []);
 
   return (
-    <VStack width="100%" spacing={8} py={16}>
+    <VStack width="100%" spacing={8} py={16} mb={16}>
       <Box
         w="full"
         maxW="600px"

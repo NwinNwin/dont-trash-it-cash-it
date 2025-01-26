@@ -126,6 +126,7 @@ function CheckoutPage() {
         <Input
           type="number"
           value={days}
+          max={item.days_limit}
           onChange={handleDaysChange}
           placeholder="Number of days"
           w="200px"

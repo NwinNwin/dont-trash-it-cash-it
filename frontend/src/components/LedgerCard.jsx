@@ -91,15 +91,6 @@ function LedgerCard({ item }) {
           <Text fontWeight="medium">Renter:</Text>
           <Text color="gray.600">{item.renter_email || "N/A"}</Text>
         </Flex>
-        <Flex align="center" gap={2}>
-          <Icon as={MdCalendarToday} color="gray.600" />
-          <Text fontWeight="medium">Return Date:</Text>
-          <Text color="gray.600">
-            {item.return_date
-              ? new Date(item.return_date).toLocaleDateString()
-              : "N/A"}
-          </Text>
-        </Flex>
       </VStack>
     </Flex>
   );

@@ -17,29 +17,68 @@ function WaitingPage() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState({
+    lender: {},
+    renter: {},
+  });
 
   useEffect(() => {
-    const fetchItem = async () => {
+    const fetchData = async () => {
       try {
         const response = await axios.get(`http://localhost:3001/items/${id}`);
         setItem(response.data);
+        setLoading(false);
+
+        // Start polling for status changes
+        const intervalId = setInterval(async () => {
+          try {
+            // Fetch both lender and renter status
+            const [lenderResponse, renterResponse] = await Promise.all([
+              axios.get(`http://localhost:3001/lenders/${id}`),
+              axios.get(`http://localhost:3001/renters/${id}`),
+            ]);
+
+            const newStatus = {
+              lender: lenderResponse.data,
+              renter: renterResponse.data,
+            };
+
+            setStatus(newStatus);
+            console.log(newStatus);
+
+            // Check if both parties confirmed pickup
+            if (
+              newStatus.lender.is_picked_up &&
+              newStatus.renter.is_picked_up
+            ) {
+              clearInterval(intervalId);
+              navigate(`/pickup-confirmation/${id}`);
+            }
+            // Check if both parties confirmed return
+            else if (
+              newStatus.lender.is_returned &&
+              newStatus.renter.is_returned
+            ) {
+              clearInterval(intervalId);
+              navigate(`/pickup-confirmation/${id}`);
+            }
+          } catch (error) {
+            console.error("Error fetching status:", error);
+          }
+        }, 3000); // Poll every 3 seconds
+
+        // Cleanup interval on component unmount
+        return () => clearInterval(intervalId);
       } catch (error) {
-        console.error("Error fetching item:", error);
-      } finally {
+        console.error("Error fetching data:", error);
         setLoading(false);
       }
     };
 
     if (id) {
-      fetchItem();
+      fetchData();
     }
-  }, [id]);
-
-  const handleConfirm = () => {
-    navigate(`/pickup-confirmation/${id}`, {
-      state: { itemName: item?.name },
-    });
-  };
+  }, [id, navigate]);
 
   if (loading) {
     return (
@@ -64,7 +103,7 @@ function WaitingPage() {
             Waiting for
           </Text>
           <Text fontSize="2xl" fontWeight="bold" color="green.700">
-            Pick Up / Return
+            {item?.status === "Rented" ? "Return" : "Pick Up"}
           </Text>
           <HStack spacing={2} color="green.600">
             <Icon as={MdInventory} />
@@ -92,32 +131,38 @@ function WaitingPage() {
 
           <VStack spacing={2} textAlign="center">
             <Text fontSize="2xl" fontWeight="bold" color="gray.700">
-              Waiting for Pick Up
+              Waiting for Confirmation
             </Text>
             <Text fontSize="lg" color="gray.600">
-              to confirm the transaction
+              Please wait while both parties confirm the{" "}
+              {item?.status === "Rented" ? "return" : "pickup"}
+            </Text>
+          </VStack>
+
+          <VStack spacing={2} pt={4}>
+            <Text color="gray.600">
+              Lender:{" "}
+              {(
+                item?.status === "Rented"
+                  ? status.lender.is_returned
+                  : status.lender.is_picked_up
+              )
+                ? "✅ Confirmed"
+                : "⏳ Waiting"}
+            </Text>
+            <Text color="gray.600">
+              Renter:{" "}
+              {(
+                item?.status === "Rented"
+                  ? status.renter.is_returned
+                  : status.renter.is_picked_up
+              )
+                ? "✅ Confirmed"
+                : "⏳ Waiting"}
             </Text>
           </VStack>
         </VStack>
       </Box>
-
-      <Button
-        size="lg"
-        w="full"
-        bg="blue.700"
-        color="white"
-        mt={4}
-        onClick={handleConfirm}
-        borderRadius="lg"
-        shadow="md"
-        _hover={{
-          transform: "translateY(-2px)",
-          shadow: "lg",
-        }}
-        transition="all 0.2s"
-      >
-        Confirm
-      </Button>
     </VStack>
   );
 }

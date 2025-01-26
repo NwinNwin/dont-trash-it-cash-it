@@ -1,16 +1,10 @@
-import { HStack, Button, Flex, Icon, Text } from "@chakra-ui/react";
+import { HStack, Button, Flex, Icon, Text, Image } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useState, useEffect } from "react";
-import {
-  MdAdd,
-  MdLogout,
-  MdLogin,
-  MdStorefront,
-  MdShoppingBag,
-} from "react-icons/md";
+import { MdAdd, MdLogout, MdLogin } from "react-icons/md";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -58,16 +52,15 @@ const Navbar = () => {
       bg="white"
       boxShadow="0 2px 10px rgba(0,0,0,0.05)"
       h={16}
-      px={4}
+      px={1}
     >
-      <Text
-        fontSize="xl"
-        fontWeight="bold"
+      <Image
+        src="/ih_logo.png"
+        alt="Logo"
+        h="80px"
         cursor="pointer"
         onClick={() => navigate("/")}
-      >
-        RentApp
-      </Text>
+      />
 
       <HStack spacing={2}>
         <NavButton
