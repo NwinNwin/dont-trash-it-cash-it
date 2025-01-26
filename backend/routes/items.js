@@ -57,6 +57,32 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get ledger items (items with status Renting or Returned)
+router.get("/ledger", async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        i.*,
+        l.email as lender_email,
+        r.email as renter_email
+      FROM 
+        Items i
+        LEFT JOIN Lender l ON i.id = l.item_id
+        LEFT JOIN Renter r ON i.id = r.item_id
+      WHERE 
+        i.status IN ('Renting', 'Returned')
+      ORDER BY
+        i.id DESC;
+    `;
+
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json("Server Error");
+  }
+});
+
 // Get item by id
 router.get("/:id", async (req, res) => {
   try {
