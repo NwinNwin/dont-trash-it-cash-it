@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
               Generate realistic values and return only the JSON object with these exact fields:
               {
                 "category": "string (e.g., electronics, clothing)",
-                "material_composition": ["array of materials"],
+                "material_composition": ["array of materials"]("fabric", "plastic", "steel", "aluminum", "glass", "paper", "wool", "leather", "concrete", "rubber", "wood", "copper", "ceramic", "cardboard", "foam", "pvc", "nylon", "polyester"),
                 "estimated_weight_kg": number,
                 "country_of_origin": "string",
                 "transportation_distance_km": number,
@@ -240,10 +240,25 @@ router.post("/emission-calculator", async (req, res) => {
       lifetime_years,
     } = req.body;
 
-    // Mock emission factors
     const materialEmissionFactors = {
-      "organic cotton": 2.1, // kg CO2e per kg
+      fabric: 3.0, // kg CO2e per kg (average for textiles like cotton, polyester, etc.)
       plastic: 6, // kg CO2e per kg
+      steel: 1.85, // kg CO2e per kg
+      aluminum: 8.24, // kg CO2e per kg
+      glass: 1.2, // kg CO2e per kg
+      paper: 1.7, // kg CO2e per kg
+      wool: 3.6, // kg CO2e per kg
+      leather: 13.8, // kg CO2e per kg
+      concrete: 0.1, // kg CO2e per kg
+      rubber: 2.3, // kg CO2e per kg
+      wood: 0.9, // kg CO2e per kg
+      copper: 3.0, // kg CO2e per kg
+      ceramic: 1.0, // kg CO2e per kg
+      cardboard: 1.2, // kg CO2e per kg
+      foam: 3.5, // kg CO2e per kg (e.g., insulation or packaging foam)
+      pvc: 6.1, // kg CO2e per kg (polyvinyl chloride)
+      nylon: 9.0, // kg CO2e per kg (synthetic fiber)
+      polyester: 5.5, // kg CO2e per kg (common synthetic textile)
     };
 
     const transportEmissionFactors = {

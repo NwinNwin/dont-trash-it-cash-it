@@ -16,6 +16,7 @@ app.use("/items", require("./routes/items"));
 app.use("/lenders", require("./routes/lenders"));
 app.use("/renters", require("./routes/renters"));
 app.use("/users", require("./routes/users"));
+app.use("/carbon", require("./routes/carbon"));
 
 app.get("/", async (req, res) => {
   try {
