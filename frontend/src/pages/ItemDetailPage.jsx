@@ -174,7 +174,7 @@ function ItemDetailPage() {
   }
 
   return (
-    <Flex direction="column" align="center" py={16} w="full">
+    <Flex direction="column" align="center" py={16} w="full" mb={10}>
       {/* Left side - Images */}
       <Flex>
         <ImageCarousel images={item.images} />
