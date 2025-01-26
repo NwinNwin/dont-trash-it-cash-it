@@ -49,31 +49,47 @@ function RentPage() {
     fetchRentedItems();
   }, [userEmail]);
 
+  const handlePickupConfirmation = async (itemId) => {
+    try {
+      await axios.put(`http://localhost:3001/renters/${itemId}`, {
+        is_picked_up: true,
+        is_returned: false,
+      });
+
+      // Navigate to waiting page
+      navigate(`/waiting/${itemId}`);
+    } catch (error) {
+      console.error("Error updating pickup status:", error);
+      alert("Failed to update pickup status. Please try again.");
+    }
+  };
+
+  const handleReturnConfirmation = async (itemId) => {
+    try {
+      await axios.put(`http://localhost:3001/renters/${itemId}`, {
+        is_picked_up: true,
+        is_returned: true,
+      });
+
+      // Navigate to waiting page
+      navigate(`/waiting/${itemId}`);
+    } catch (error) {
+      console.error("Error updating return status:", error);
+      alert("Failed to update return status. Please try again.");
+    }
+  };
+
   const getStatusButton = (status, itemId, itemName) => {
     switch (status) {
-      case "Awaiting pickup":
+      case "Awaiting Pickup":
         return (
-          <Button
-            size="sm"
-            onClick={() =>
-              navigate(`/waiting/${itemId}`, {
-                state: { itemName },
-              })
-            }
-          >
+          <Button size="sm" onClick={() => handlePickupConfirmation(itemId)}>
             Confirm Item is picked up
           </Button>
         );
       case "Renting":
         return (
-          <Button
-            size="sm"
-            onClick={() =>
-              navigate(`/waiting/${itemId}`, {
-                state: { itemName },
-              })
-            }
-          >
+          <Button size="sm" onClick={() => handleReturnConfirmation(itemId)}>
             Confirm Return
           </Button>
         );
@@ -121,25 +137,13 @@ function RentPage() {
                     : "blue"
                 }
               >
-                {item.is_picked_up
-                  ? item.is_returned
-                    ? "Returned"
-                    : "Renting"
-                  : "Awaiting pickup"}
+                {item.status}
               </Badge>
               <Text fontSize="sm" color="gray.500" mt={2}>
                 ${item.rental_fee}/day
               </Text>
 
-              {getStatusButton(
-                item.is_picked_up
-                  ? item.is_returned
-                    ? "Returned"
-                    : "Renting"
-                  : "Awaiting pickup",
-                item.id,
-                item.name
-              )}
+              {getStatusButton(item.status, item.id, item.name)}
             </Box>
           </Flex>
         ))

@@ -67,11 +67,57 @@ router.put("/:item_id", async (req, res) => {
   try {
     const { item_id } = req.params;
     const { is_picked_up, is_returned } = req.body;
-    const updateRenter = await pool.query(
-      "UPDATE renter SET is_picked_up = $1, is_returned = $2 WHERE item_id = $3 RETURNING *",
-      [is_picked_up, is_returned, item_id]
-    );
-    res.json(updateRenter.rows[0]);
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      // Update renter status
+      const updateRenter = await client.query(
+        "UPDATE renter SET is_picked_up = $1, is_returned = $2 WHERE item_id = $3 RETURNING *",
+        [is_picked_up, is_returned, item_id]
+      );
+
+      // Check if both lender and renter have picked up or returned
+      const checkStatus = await client.query(
+        `SELECT r.is_picked_up as renter_picked_up, l.is_picked_up as lender_picked_up,
+                r.is_returned as renter_returned, l.is_returned as lender_returned
+         FROM renter r, lender l 
+         WHERE r.item_id = $1 AND l.item_id = $1`,
+        [item_id]
+      );
+
+      if (
+        is_picked_up &&
+        checkStatus.rows[0]?.renter_picked_up &&
+        checkStatus.rows[0]?.lender_picked_up
+      ) {
+        // Update item status to "Renting" when both picked up
+        await client.query(
+          "UPDATE items SET status = 'Renting' WHERE id = $1",
+          [item_id]
+        );
+      }
+      if (
+        is_returned &&
+        checkStatus.rows[0]?.renter_returned &&
+        checkStatus.rows[0]?.lender_returned
+      ) {
+        // Update item status to "Returned" when both returned
+        await client.query(
+          "UPDATE items SET status = 'Returned' WHERE id = $1",
+          [item_id]
+        );
+      }
+
+      await client.query("COMMIT");
+      res.json(updateRenter.rows[0]);
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).json("Server Error");

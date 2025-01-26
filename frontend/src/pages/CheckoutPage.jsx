@@ -79,6 +79,7 @@ function CheckoutPage() {
       await axios.put(`http://localhost:3001/items/${id}`, {
         ...item, // Spread existing item properties
         days_rented: days, // Add the new days_rented value
+        status: "Awaiting Pickup",
       });
 
       // Then create renter record

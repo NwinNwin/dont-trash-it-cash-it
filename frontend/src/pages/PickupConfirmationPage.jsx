@@ -28,7 +28,7 @@ function PickupConfirmationPage() {
       <Button
         size="lg"
         w="full"
-        bg="gray.200"
+        bg="black"
         onClick={() => navigate("/")}
         borderRadius="md"
       >
