@@ -101,7 +101,7 @@ function ListItemPage() {
         days_limit: parseInt(daysLimit),
         images,
         email: userEmail,
-        // days_rented will be set to 0 by default in the backend
+        status: "Listed",
       });
 
       alert("Item listed successfully");

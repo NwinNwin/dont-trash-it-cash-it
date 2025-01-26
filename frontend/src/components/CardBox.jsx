@@ -18,15 +18,18 @@ const CardBox = () => {
     fetchItems();
   }, []);
 
-  const itemsMap = items.map((item) => (
-    <ItemCard
-      key={item.id}
-      id={item.id}
-      images={item.images}
-      rental_fee={item.rental_fee}
-      name={item.name}
-    />
-  ));
+  const itemsMap = items.map(
+    (item) =>
+      item.status === "Listed" && (
+        <ItemCard
+          key={item.id}
+          id={item.id}
+          images={item.images}
+          rental_fee={item.rental_fee}
+          name={item.name}
+        />
+      )
+  );
   return (
     <Flex width="100%" justifyContent="center" px={1}>
       <Flex

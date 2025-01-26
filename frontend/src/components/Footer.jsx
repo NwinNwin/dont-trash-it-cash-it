@@ -1,42 +1,44 @@
-import { Button, Flex } from "@chakra-ui/react";
+import { Flex, Icon, Text, VStack } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { MdHome, MdShoppingCart, MdStore, MdReceipt } from "react-icons/md";
 
 const Footer = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const NavItem = ({ icon, label, path }) => (
+    <VStack
+      spacing={1}
+      cursor="pointer"
+      onClick={() => navigate(path)}
+      color={location.pathname === path ? "blue.500" : "gray.500"}
+      transition="all 0.2s"
+      _hover={{ transform: "translateY(-2px)" }}
+    >
+      <Icon as={icon} boxSize={6} />
+      <Text fontSize="xs" fontWeight="medium">
+        {label}
+      </Text>
+    </VStack>
+  );
+
   return (
     <Flex
       as="footer"
-      justify="center"
+      justify="space-around"
       align="center"
-      gap={4}
-      w={"full"}
+      w="full"
       position="fixed"
       bottom={0}
       bg="white"
       p={4}
-      boxShadow="md"
-      h={16}
+      boxShadow="0 -2px 10px rgba(0,0,0,0.05)"
+      h={20}
     >
-      <Button
-        onClick={() => navigate("/")}
-        colorScheme={location.pathname === "/" ? "blue" : "gray"}
-      >
-        Home
-      </Button>
-      <Button
-        onClick={() => navigate("/rent")}
-        colorScheme={location.pathname === "/rent" ? "blue" : "gray"}
-      >
-        Rent
-      </Button>
-      <Button
-        onClick={() => navigate("/lend")}
-        colorScheme={location.pathname === "/lend" ? "blue" : "gray"}
-      >
-        Lend
-      </Button>
+      <NavItem icon={MdHome} label="Home" path="/" />
+      <NavItem icon={MdShoppingCart} label="My Rentals" path="/rent" />
+      <NavItem icon={MdStore} label="My Listings" path="/lend" />
+      <NavItem icon={MdReceipt} label="Ledger" path="/ledger" />
     </Flex>
   );
 };

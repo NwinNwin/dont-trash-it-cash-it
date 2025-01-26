@@ -13,6 +13,7 @@ import WaitingPage from "./pages/WaitingPage";
 import PickupConfirmationPage from "./pages/PickupConfirmationPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
+import LedgerPage from "./pages/LedgerPage";
 
 const App = () => {
   return (
@@ -60,6 +61,9 @@ const App = () => {
 
           {/* Route for the signup page */}
           <Route path="/signup" element={<SignUpPage />} />
+
+          {/* Add the new ledger page route */}
+          <Route path="/ledger" element={<LedgerPage />} />
         </Routes>
 
         {/* Footer remains persistent across all routes */}
