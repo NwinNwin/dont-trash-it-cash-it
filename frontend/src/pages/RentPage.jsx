@@ -7,30 +7,32 @@ import {
   Badge,
   Flex,
 } from "@chakra-ui/react";
-import fakeData from "../utils/fakeData";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function RentPage() {
+  const [items, setItems] = useState([]);
   const navigate = useNavigate();
+  const userEmail = "user1@example.com"; // TODO: Replace with actual user email from auth
 
-  // Simulated rental data
-  const rentals = [
-    {
-      ...fakeData[0],
-      status: "Awaiting pickup",
-      email: "anteater@uci.edu",
-    },
-    {
-      ...fakeData[1],
-      status: "Renting",
-      email: "anteater@uci.edu",
-    },
-    {
-      ...fakeData[2],
-      status: "Rented",
-      email: "anteater@uci.edu",
-    },
-  ];
+  useEffect(() => {
+    const fetchRentedItems = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3001/renters/email/${userEmail}`
+        );
+        setItems(response.data);
+      } catch (error) {
+        if (error.response?.status !== 404) {
+          console.error("Error fetching rented items:", error);
+        }
+        setItems([]);
+      }
+    };
+
+    fetchRentedItems();
+  }, [userEmail]);
 
   const getStatusButton = (status, itemId, itemName) => {
     switch (status) {
@@ -66,55 +68,67 @@ function RentPage() {
   };
 
   return (
-    <VStack spacing={6} w="full" maxW="container.md" px={4} py={16} mb={20}>
-      <Text fontSize="2xl" fontWeight="bold" alignSelf="start">
+    <VStack spacing={8} py={16} px={4} maxW="600px" mx="auto">
+      <Text fontSize="2xl" fontWeight="bold">
         My Rentals
       </Text>
 
-      {rentals.map((item, index) => (
-        <Flex
-          key={index}
-          w="full"
-          bg="white"
-          p={4}
-          borderRadius="lg"
-          boxShadow="sm"
-          gap={4}
-        >
-          <Image
-            src={item.images[0]}
-            alt={item.name}
-            boxSize="100px"
-            objectFit="cover"
-            borderRadius="md"
-          />
+      {items.length === 0 ? (
+        <Text color="gray.500">No items rented yet</Text>
+      ) : (
+        items.map((item) => (
+          <Flex
+            key={item.id}
+            w="full"
+            borderWidth={1}
+            borderRadius="lg"
+            overflow="hidden"
+            p={4}
+            gap={4}
+          >
+            <Image
+              src={item.images[0]}
+              alt={item.name}
+              boxSize="100px"
+              objectFit="cover"
+              borderRadius="md"
+            />
+            <Box flex={1}>
+              <Text fontSize="xl" fontWeight="semibold">
+                {item.name}
+              </Text>
+              <Badge
+                colorScheme={
+                  item.is_picked_up
+                    ? item.is_returned
+                      ? "green"
+                      : "yellow"
+                    : "blue"
+                }
+              >
+                {item.is_picked_up
+                  ? item.is_returned
+                    ? "Returned"
+                    : "Renting"
+                  : "Awaiting pickup"}
+              </Badge>
+              <Text fontSize="sm" color="gray.500" mt={2}>
+                ${item.rental_fee}/day
+              </Text>
 
-          <Box flex={1}>
-            <Badge mb={2} px={2} py={1} borderRadius="full" bg="gray.200">
-              {item.status}
-            </Badge>
-
-            <Text fontSize="lg" fontWeight="semibold">
-              {item.name}
-            </Text>
-
-            <Text color="green.600" fontSize="md">
-              ${item.rental_fee} / day
-            </Text>
-
-            <Text fontSize="sm" color="gray.500">
-              + ${item.collateral} collateral
-            </Text>
-
-            <Text fontSize="sm" mt={1}>
-              {item.status === "Awaiting pickup" ? "To: " : "From: "}
-              {item.email}
-            </Text>
-
-            {getStatusButton(item.status, item.id, item.name)}
-          </Box>
-        </Flex>
-      ))}
+              {getStatusButton(
+                item.is_picked_up
+                  ? item.is_returned
+                    ? "Returned"
+                    : "Renting"
+                  : "Awaiting pickup",
+                item.id,
+                item.name
+              )}
+            </Box>
+          </Flex>
+        ))
+      )}
     </VStack>
   );
 }

@@ -11,6 +11,8 @@ import LendPage from "./pages/LendPage";
 import CheckoutConfirmationPage from "./pages/CheckoutConfirmationPage";
 import WaitingPage from "./pages/WaitingPage";
 import PickupConfirmationPage from "./pages/PickupConfirmationPage";
+import SignInPage from "./pages/SignInPage";
+import SignUpPage from "./pages/SignUpPage";
 
 const App = () => {
   return (
@@ -52,6 +54,12 @@ const App = () => {
             path="/pickup-confirmation/:id"
             element={<PickupConfirmationPage />}
           />
+
+          {/* Route for the signin page */}
+          <Route path="/signin" element={<SignInPage />} />
+
+          {/* Route for the signup page */}
+          <Route path="/signup" element={<SignUpPage />} />
         </Routes>
 
         {/* Footer remains persistent across all routes */}
